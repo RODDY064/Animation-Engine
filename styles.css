@@ -1,10 +1,15 @@
 body {
   margin: 0;
   padding: 0;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: 32px;
+  justify-content: center;
+}
+
+.body-2 {
+  background: #000;
 }
 
 .box {
@@ -21,16 +26,127 @@ body {
   width: 120px;
   height: 120px;
   border-radius: 24px;
-  background-color: black;
-  margin-top: 32px;
-  animation: moveBox 300ms cubic-bezier(0.25, 0.1, 0.25, 0.1) alternate;
+  background-color: rgb(0, 0, 0);
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  margin-top: 64px;
 }
 
-@keyframes moveBox {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(200px);
-  }
+
+.wrapper {
+  width: 70%;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.image-wrapper {
+  width: 100%;
+  height: 80%;
+  position: relative;
+  aspect-ratio: 1.6335403727;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fade-link {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+}
+
+picture {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  will-change: opacity;
+}
+
+picture img {
+  object-fit: contain;
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.terms {
+  width: 70%;
+  margin-top: 24px;
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 2px;
+}
+
+.terms-words {
+  display: flex;
+  width: 95%;
+  justify-content: space-between;
+  align-items: center;
+  list-style: none;
+  padding: 0px;
+  gap: 0;
+}
+
+.terms-words li {
+  font-size: 17px;
+  text-align: center;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  flex: 1;
+}
+
+.terms-words li:hover {
+  color: #aaa;
+}
+
+.slider-con {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+  width: 95%;
+  height: 10px;
+  margin-top: 12px;
+}
+
+.slider {
+  width: 100%;
+  height: 1px;
+  background-color: rgba(66, 66, 69, 0.72);
+  position: relative;
+}
+
+.slider-thumb {
+  position: absolute;
+  width: 32px;
+  height: 1.5px;
+  background-color: #ffffff;
+  border-radius: 2px;
+  top: 4px;
+  left: 0px;
+  will-change: left, width;
+}
+
+.message {
+  margin-top: 20px;
+  color: #ffffff73;
+  font-size: 17px;
+  text-align: center;
+  max-width: 90%;
+}
+
+.picture_two {
+  opacity: 0;
 }

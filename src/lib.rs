@@ -9,21 +9,23 @@ use wasm_bindgen::closure::Closure;
 use wasm_bindgen::prelude::*;
 use web_sys::{window, Element, HtmlElement, Performance, SvgElement};
 
-mod animation_group;
+mod choreographer;
 mod cubic;
 mod gesture;
 mod metal_acceleration;
 mod particle_effects;
+mod sequencer;
 mod shape_morphing;
 mod spring;
 mod transaction;
 mod types;
 
-pub use animation_group::AnimationGroup;
+pub use choreographer::Choreographer;
 pub use cubic::CubicBezier as CubicBezierCurve;
-pub use gesture::GestureRecognizer;
+pub use gesture::GestureController;
 pub use metal_acceleration::GPUAccelerator;
 pub use particle_effects::ParticleEmitter;
+pub use sequencer::Sequencer;
 pub use shape_morphing::PathMorph;
 pub use spring::Spring as SpringPhysics;
 pub use transaction::AnimationTransaction;
@@ -62,6 +64,7 @@ pub struct Animation {
     auto_reverse: bool,
     transform_origin: (String, String, String),
     shadow_layers: Vec<ShadowValue>,
+    continue_animate: bool,
 }
 
 #[wasm_bindgen]
@@ -140,12 +143,17 @@ impl Animation {
             auto_reverse: false,
             transform_origin: ("50%".to_string(), "50%".to_string(), "0".to_string()),
             shadow_layers: Vec::new(),
+            continue_animate: false,
         })
     }
 
     // ========================================================================
     // TIMING CURVES
     // ========================================================================
+
+    pub fn create_gesture_controller(&self) -> GestureController {
+        GestureController::new()
+    }
 
     #[wasm_bindgen]
     pub fn cubic(mut self, x1: f64, y1: f64, x2: f64, y2: f64, duration: f64) -> Self {
@@ -264,6 +272,12 @@ impl Animation {
     #[wasm_bindgen]
     pub fn additive(mut self) -> Self {
         self.is_additive = true;
+        self
+    }
+
+    #[wasm_bindgen]
+    pub fn continue_animate(mut self) -> Self {
+        self.continue_animate = true;
         self
     }
 
@@ -503,6 +517,7 @@ impl Animation {
         // Size - Lengths
         add_length!(kf.width, PropertyType::Width);
         add_length!(kf.height, PropertyType::Height);
+        add_length!(kf.border_radius, PropertyType::BorderRadius);
 
         // Filters - Numbers
         add_number!(kf.blur, PropertyType::Blur);
@@ -521,8 +536,10 @@ impl Animation {
 
         Ok(())
     }
-
     fn setup_properties(&mut self, cfg: &AnimateConfig) -> Result<(), JsValue> {
+        // Clear properties to start fresh FIRST
+        self.properties.clear();
+
         macro_rules! setup_number {
             ($opt:expr, $prop_type:expr) => {
                 if let Some(val) = $opt {
@@ -586,8 +603,7 @@ impl Animation {
 
         // Visual
         setup_number!(cfg.opacity, PropertyType::Opacity);
-        setup_number!(cfg.opacity, PropertyType::Opacity);
-        setup_visibility!(cfg.visibility); // ✨ NEW
+        setup_visibility!(cfg.visibility);
         setup_color!(cfg.background_color, PropertyType::BackgroundColor);
         setup_color!(cfg.color, PropertyType::Color);
         setup_color!(cfg.border_color, PropertyType::BorderColor);
@@ -625,27 +641,252 @@ impl Animation {
         setup_length!(cfg.perspective_origin_x, PropertyType::PerspectiveOriginX);
         setup_length!(cfg.perspective_origin_y, PropertyType::PerspectiveOriginY);
 
+        // ✨ If continue_animate, read stored values and add as frozen properties
+        if self.continue_animate {
+            if let Ok(html_elem) = self.element.clone().dyn_into::<HtmlElement>() {
+                let get_attr = |name: &str| -> Option<String> { html_elem.get_attribute(name) };
+
+                // Read stored X
+                if cfg.x.is_none() {
+                    if let Some(x_str) = get_attr("data-anim-x") {
+                        if let Ok(x_val) = x_str.parse::<f64>() {
+                            if x_val != 0.0 {
+                                self.properties.push(AnimationProperty {
+                                    property_type: PropertyType::X,
+                                    start: AnimatableValue::Number(x_val),
+                                    end: AnimatableValue::Number(x_val),
+                                    current: AnimatableValue::Number(x_val),
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Read stored Y
+                if cfg.y.is_none() {
+                    if let Some(y_str) = get_attr("data-anim-y") {
+                        if let Ok(y_val) = y_str.parse::<f64>() {
+                            if y_val != 0.0 {
+                                self.properties.push(AnimationProperty {
+                                    property_type: PropertyType::Y,
+                                    start: AnimatableValue::Number(y_val),
+                                    end: AnimatableValue::Number(y_val),
+                                    current: AnimatableValue::Number(y_val),
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Read stored Z
+                if cfg.z.is_none() {
+                    if let Some(z_str) = get_attr("data-anim-z") {
+                        if let Ok(z_val) = z_str.parse::<f64>() {
+                            if z_val != 0.0 {
+                                self.properties.push(AnimationProperty {
+                                    property_type: PropertyType::Z,
+                                    start: AnimatableValue::Number(z_val),
+                                    end: AnimatableValue::Number(z_val),
+                                    current: AnimatableValue::Number(z_val),
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Read stored Scale
+                if cfg.scale.is_none() {
+                    if let Some(scale_str) = get_attr("data-anim-scale") {
+                        if let Ok(scale_val) = scale_str.parse::<f64>() {
+                            if scale_val != 1.0 {
+                                self.properties.push(AnimationProperty {
+                                    property_type: PropertyType::Scale,
+                                    start: AnimatableValue::Number(scale_val),
+                                    end: AnimatableValue::Number(scale_val),
+                                    current: AnimatableValue::Number(scale_val),
+                                });
+                            }
+                        }
+                    }
+                }
+
+                // Read stored Opacity
+                if cfg.opacity.is_none() {
+                    if let Some(opacity_str) = get_attr("data-anim-opacity") {
+                        if let Ok(opacity_val) = opacity_str.parse::<f64>() {
+                            if opacity_val != 1.0 {
+                                self.properties.push(AnimationProperty {
+                                    property_type: PropertyType::Opacity,
+                                    start: AnimatableValue::Number(opacity_val),
+                                    end: AnimatableValue::Number(opacity_val),
+                                    current: AnimatableValue::Number(opacity_val),
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         Ok(())
     }
 
     #[inline]
     fn add_number_property(&mut self, prop_type: PropertyType, end_value: f64) {
+        let start_value = if self.continue_animate {
+            self.get_current_number_value(prop_type)
+        } else {
+            0.0
+        };
+
         self.properties.push(AnimationProperty {
             property_type: prop_type,
-            start: AnimatableValue::Number(0.0),
+            start: AnimatableValue::Number(start_value),
             end: AnimatableValue::Number(end_value),
-            current: AnimatableValue::Number(0.0),
+            current: AnimatableValue::Number(start_value),
         });
     }
 
     #[inline]
     fn add_length_property(&mut self, prop_type: PropertyType, value: f64, unit: LengthUnit) {
+        let start_value = self.get_current_length_value(prop_type);
+
         self.properties.push(AnimationProperty {
             property_type: prop_type,
-            start: AnimatableValue::Length(0.0, unit.clone()),
+            start: AnimatableValue::Length(start_value, unit.clone()),
             end: AnimatableValue::Length(value, unit.clone()),
-            current: AnimatableValue::Length(0.0, unit),
+            current: AnimatableValue::Length(start_value, unit),
         });
+    }
+
+    fn get_current_length_value(&self, prop_type: PropertyType) -> f64 {
+        if let Ok(html_elem) = self.element.clone().dyn_into::<HtmlElement>() {
+            let property_name = match prop_type {
+                PropertyType::Width => "width",
+                PropertyType::Height => "height",
+                PropertyType::MinWidth => "min-width",
+                PropertyType::MinHeight => "min-height",
+                PropertyType::MaxWidth => "max-width",
+                PropertyType::MaxHeight => "max-height",
+                PropertyType::BorderRadius => "border-radius",
+                PropertyType::BorderWidth => "border-width",
+                _ => return 0.0,
+            };
+
+            // Try computed style first
+            if let Some(window) = window() {
+                if let Ok(Some(computed)) = window.get_computed_style(&html_elem) {
+                    if let Ok(value) = computed.get_property_value(property_name) {
+                        if !value.is_empty() && value != "auto" {
+                            if let Ok((num, _)) = parse_css_length(&value) {
+                                return num;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Fallback to inline style
+            if let Ok(value) = html_elem.style().get_property_value(property_name) {
+                if !value.is_empty() && value != "auto" {
+                    if let Ok((num, _)) = parse_css_length(&value) {
+                        return num;
+                    }
+                }
+            }
+        }
+
+        0.0
+    }
+
+    #[inline]
+    fn get_current_number_value(&self, prop_type: PropertyType) -> f64 {
+        if let Ok(html_elem) = self.element.clone().dyn_into::<HtmlElement>() {
+            let transform_str = html_elem
+                .style()
+                .get_property_value("transform")
+                .unwrap_or_default();
+
+            // Parse transform string to extract current values
+            match prop_type {
+                PropertyType::X | PropertyType::Y | PropertyType::Z => {
+                    // Extract from translate3d
+                    if let Some(start) = transform_str.find("translate3d(") {
+                        if let Some(end) = transform_str[start..].find(")") {
+                            let values_str = &transform_str[start + 12..start + end];
+                            let parts: Vec<&str> = values_str.split(',').collect();
+
+                            if parts.len() >= 3 {
+                                return match prop_type {
+                                    PropertyType::X => parts[0]
+                                        .trim()
+                                        .trim_end_matches("px")
+                                        .parse()
+                                        .unwrap_or(0.0),
+                                    PropertyType::Y => parts[1]
+                                        .trim()
+                                        .trim_end_matches("px")
+                                        .parse()
+                                        .unwrap_or(0.0),
+                                    PropertyType::Z => parts[2]
+                                        .trim()
+                                        .trim_end_matches("px")
+                                        .parse()
+                                        .unwrap_or(0.0),
+                                    _ => 0.0,
+                                };
+                            }
+                        }
+                    }
+                    0.0
+                }
+                PropertyType::Scale => {
+                    if let Some(start) = transform_str.find("scale(") {
+                        if let Some(end) = transform_str[start..].find(")") {
+                            let val_str = &transform_str[start + 6..start + end];
+                            return val_str.trim().parse().unwrap_or(1.0);
+                        }
+                    }
+                    1.0
+                }
+                PropertyType::ScaleX => {
+                    if let Some(start) = transform_str.find("scaleX(") {
+                        if let Some(end) = transform_str[start..].find(")") {
+                            let val_str = &transform_str[start + 7..start + end];
+                            return val_str.trim().parse().unwrap_or(1.0);
+                        }
+                    }
+                    1.0
+                }
+                PropertyType::ScaleY => {
+                    if let Some(start) = transform_str.find("scaleY(") {
+                        if let Some(end) = transform_str[start..].find(")") {
+                            let val_str = &transform_str[start + 7..start + end];
+                            return val_str.trim().parse().unwrap_or(1.0);
+                        }
+                    }
+                    1.0
+                }
+                PropertyType::Opacity => {
+                    if let Ok(opacity_str) = html_elem.style().get_property_value("opacity") {
+                        return opacity_str.trim().parse().unwrap_or(1.0);
+                    }
+                    1.0
+                }
+                PropertyType::Rotate => {
+                    if let Some(start) = transform_str.find("rotate(") {
+                        if let Some(end) = transform_str[start..].find("deg") {
+                            let val_str = &transform_str[start + 7..start + end];
+                            return val_str.trim().parse().unwrap_or(0.0);
+                        }
+                    }
+                    0.0
+                }
+                _ => 0.0,
+            }
+        } else {
+            0.0
+        }
     }
 
     #[inline]
@@ -661,14 +902,59 @@ impl Animation {
 
     #[inline]
     fn parse_and_add_color(&mut self, prop_type: PropertyType, value: &str) -> Result<(), JsValue> {
-        let (r, g, b, a) = parse_css_color(value)?;
+        let (r, g, b, a) = parse_css_color(value).map_err(|e| JsValue::from_str(&e))?;
+
+        // Capture current color from element
+        let (start_r, start_g, start_b, start_a) = self.get_current_color_value(prop_type);
+
         self.properties.push(AnimationProperty {
             property_type: prop_type,
-            start: AnimatableValue::Color(0.0, 0.0, 0.0, 1.0),
+            start: AnimatableValue::Color(start_r, start_g, start_b, start_a),
             end: AnimatableValue::Color(r, g, b, a),
-            current: AnimatableValue::Color(0.0, 0.0, 0.0, 1.0),
+            current: AnimatableValue::Color(start_r, start_g, start_b, start_a),
         });
         Ok(())
+    }
+
+    fn get_current_color_value(&self, prop_type: PropertyType) -> (f64, f64, f64, f64) {
+        if let Ok(html_elem) = self.element.clone().dyn_into::<HtmlElement>() {
+            let property_name = match prop_type {
+                PropertyType::BackgroundColor => "background-color",
+                PropertyType::Color => "color",
+                PropertyType::BorderColor => "border-color",
+                _ => return (0.0, 0.0, 0.0, 1.0),
+            };
+
+            // Try computed style first (most reliable)
+            if let Some(window) = window() {
+                if let Ok(Some(computed)) = window.get_computed_style(&html_elem) {
+                    if let Ok(value) = computed.get_property_value(property_name) {
+                        if !value.is_empty() {
+                            if let Ok(color) = parse_css_color(&value) {
+                                return color;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Fallback to inline style
+            if let Ok(value) = html_elem.style().get_property_value(property_name) {
+                if !value.is_empty() {
+                    if let Ok(color) = parse_css_color(&value) {
+                        return color;
+                    }
+                }
+            }
+        }
+
+        //  defaults
+        match prop_type {
+            PropertyType::BackgroundColor => (0.0, 0.0, 0.0, 0.0), // transparent
+            PropertyType::Color => (0.0, 0.0, 0.0, 1.0),           // black text
+            PropertyType::BorderColor => (0.0, 0.0, 0.0, 1.0),     // black border
+            _ => (0.0, 0.0, 0.0, 1.0),
+        }
     }
 
     fn capture_start_values(&mut self) -> Result<(), JsValue> {
@@ -732,6 +1018,40 @@ impl Animation {
     }
 
     fn handle_completion(&mut self) -> Result<(), JsValue> {
+        // ✨ Store final values on the element as data attributes
+        if let Ok(html_elem) = self.element.clone().dyn_into::<HtmlElement>() {
+            for prop in &self.properties {
+                match prop.property_type {
+                    PropertyType::X => {
+                        if let AnimatableValue::Number(val) = prop.current {
+                            let _ = html_elem.set_attribute("data-anim-x", &val.to_string());
+                        }
+                    }
+                    PropertyType::Y => {
+                        if let AnimatableValue::Number(val) = prop.current {
+                            let _ = html_elem.set_attribute("data-anim-y", &val.to_string());
+                        }
+                    }
+                    PropertyType::Z => {
+                        if let AnimatableValue::Number(val) = prop.current {
+                            let _ = html_elem.set_attribute("data-anim-z", &val.to_string());
+                        }
+                    }
+                    PropertyType::Scale => {
+                        if let AnimatableValue::Number(val) = prop.current {
+                            let _ = html_elem.set_attribute("data-anim-scale", &val.to_string());
+                        }
+                    }
+                    PropertyType::Opacity => {
+                        if let AnimatableValue::Number(val) = prop.current {
+                            let _ = html_elem.set_attribute("data-anim-opacity", &val.to_string());
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+
         self.current_repeat += 1;
 
         if self.repeat_count < 0 || self.current_repeat < self.repeat_count {
@@ -1107,8 +1427,8 @@ impl Animation {
     fn apply_border(&self, prop: &AnimationProperty) -> Result<(), JsValue> {
         if let AnimatableValue::Length(val, unit) = &prop.current {
             let property_name = match prop.property_type {
-                PropertyType::BorderRadius => "borderRadius",
-                PropertyType::BorderWidth => "borderWidth",
+                PropertyType::BorderRadius => "border-radius",
+                PropertyType::BorderWidth => "border-width",
                 _ => return Ok(()),
             };
             self.set_element_property(property_name, &format!("{}{}", val, unit.as_str()))?;
@@ -1205,9 +1525,9 @@ impl Animation {
     #[inline]
     fn set_color_property(&self, prop: &AnimationProperty) -> Result<(), JsValue> {
         let property_name = match prop.property_type {
-            PropertyType::BackgroundColor => "backgroundColor",
+            PropertyType::BackgroundColor => "background-color",
             PropertyType::Color => "color",
-            PropertyType::BorderColor => "borderColor",
+            PropertyType::BorderColor => "border-color",
             _ => return Ok(()),
         };
 

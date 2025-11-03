@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 use serde::Deserialize;
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash, Copy)]
@@ -31,7 +32,7 @@ pub enum PropertyType {
     BorderColor,
     BorderRadius,
     BorderWidth,
-    Visibility,  // ✨ NEW
+    Visibility,
 
     // Shadows & Effects
     ShadowOffsetX,
@@ -76,64 +77,6 @@ pub enum PropertyType {
 }
 
 impl PropertyType {
-    pub fn as_str(&self) -> &str {
-        match self {
-            PropertyType::X => "x",
-            PropertyType::Y => "y",
-            PropertyType::Z => "z",
-            PropertyType::Scale => "scale",
-            PropertyType::ScaleX => "scaleX",
-            PropertyType::ScaleY => "scaleY",
-            PropertyType::Rotate => "rotate",
-            PropertyType::RotateX => "rotateX",
-            PropertyType::RotateY => "rotateY",
-            PropertyType::RotateZ => "rotateZ",
-            PropertyType::SkewX => "skewX",
-            PropertyType::SkewY => "skewY",
-            PropertyType::Width => "width",
-            PropertyType::Height => "height",
-            PropertyType::MinWidth => "minWidth",
-            PropertyType::MinHeight => "minHeight",
-            PropertyType::MaxWidth => "maxWidth",
-            PropertyType::MaxHeight => "maxHeight",
-            PropertyType::Opacity => "opacity",
-            PropertyType::BackgroundColor => "backgroundColor",
-            PropertyType::Color => "color",
-            PropertyType::BorderColor => "borderColor",
-            PropertyType::BorderRadius => "borderRadius",
-            PropertyType::BorderWidth => "borderWidth",
-            PropertyType::Visibility => "visibility",
-            PropertyType::ShadowOffsetX => "shadowOffsetX",
-            PropertyType::ShadowOffsetY => "shadowOffsetY",
-            PropertyType::ShadowBlur => "shadowBlur",
-            PropertyType::ShadowSpread => "shadowSpread",
-            PropertyType::ShadowColor => "shadowColor",
-            PropertyType::Blur => "blur",
-            PropertyType::Brightness => "brightness",
-            PropertyType::Contrast => "contrast",
-            PropertyType::Saturate => "saturate",
-            PropertyType::Hue => "hue",
-            PropertyType::Grayscale => "grayscale",
-            PropertyType::Invert => "invert",
-            PropertyType::Sepia => "sepia",
-            PropertyType::Dropoff => "dropoff",
-            PropertyType::StrokeDashOffset => "strokeDashOffset",
-            PropertyType::StrokeDashArray => "strokeDashArray",
-            PropertyType::StrokeWidth => "strokeWidth",
-            PropertyType::FillOpacity => "fillOpacity",
-            PropertyType::StrokeOpacity => "strokeOpacity",
-            PropertyType::TransformOriginX => "transformOriginX",
-            PropertyType::TransformOriginY => "transformOriginY",
-            PropertyType::TransformOriginZ => "transformOriginZ",
-            PropertyType::Perspective => "perspective",
-            PropertyType::PerspectiveOriginX => "perspectiveOriginX",
-            PropertyType::PerspectiveOriginY => "perspectiveOriginY",
-            PropertyType::BackfaceVisibility => "backfaceVisibility",
-            PropertyType::BackgroundBlur => "backgroundBlur",
-            PropertyType::Inset => "inset",
-        }
-    }
-
     pub fn from_str(s: &str) -> Option<Self> {
         match s {
             "x" => Some(PropertyType::X),
@@ -184,7 +127,7 @@ pub enum AnimatableValue {
     Color(f64, f64, f64, f64),
     Length(f64, LengthUnit),
     Shadow(ShadowValue),
-    Visibility(VisibilityValue),  // ✨ NEW
+    Visibility(VisibilityValue),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -211,7 +154,6 @@ impl VisibilityValue {
         }
     }
 
-    /// Convert to numeric representation for interpolation
     pub fn to_number(&self) -> f64 {
         match self {
             VisibilityValue::Visible => 1.0,
@@ -220,7 +162,6 @@ impl VisibilityValue {
         }
     }
 
-    /// Convert from numeric representation
     pub fn from_number(n: f64) -> Self {
         if n > 0.5 {
             VisibilityValue::Visible
@@ -315,6 +256,9 @@ pub struct Keyframe {
 }
 
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+
+#[derive(Clone, Debug)]
 pub struct KeyframeConfig {
     pub time: f64,
     pub x: Option<f64>,
@@ -335,10 +279,15 @@ pub struct KeyframeConfig {
     pub shadow_blur: Option<f64>,
     pub shadow_offset_x: Option<f64>,
     pub shadow_offset_y: Option<f64>,
-    pub visibility: Option<String>,  // ✨ NEW
+    pub visibility: Option<String>,
+    pub border_radius: Option<String>,
 }
 
+
 #[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+
+#[derive(Clone, Debug)]
 pub struct AnimateConfig {
     // Transform
     pub x: Option<f64>,
@@ -364,7 +313,7 @@ pub struct AnimateConfig {
 
     // Visual
     pub opacity: Option<f64>,
-    pub visibility: Option<String>,  // ✨ NEW
+    pub visibility: Option<String>,
     pub background_color: Option<String>,
     pub color: Option<String>,
     pub border_color: Option<String>,
@@ -402,9 +351,7 @@ pub struct AnimateConfig {
     pub perspective_origin_x: Option<String>,
     pub perspective_origin_y: Option<String>,
 
-    pub backface_visibility: Option<f64>,
-    pub background_blur: Option<f64>,
-    pub inset: Option<f64>,
+   
 }
 
 // Helper functions
@@ -444,7 +391,6 @@ pub fn interpolate_value(
             })
         }
         (AnimatableValue::Visibility(v1), AnimatableValue::Visibility(v2)) => {
-            // Interpolate visibility as numbers, then convert back
             let v1_num = v1.to_number();
             let v2_num = v2.to_number();
             let interpolated = v1_num + (v2_num - v1_num) * t;
@@ -539,15 +485,35 @@ pub fn parse_css_length(value: &str) -> Result<(f64, LengthUnit), String> {
 
 pub fn parse_css_color(value: &str) -> Result<(f64, f64, f64, f64), String> {
     let value = value.trim().to_lowercase();
-
+    
     if value.starts_with('#') {
         let hex = &value[1..];
-        if hex.len() == 6 {
+        
+        // Handle #RRGGBBAA (8 characters) ✨
+        if hex.len() == 8 {
+            let r = u8::from_str_radix(&hex[0..2], 16).unwrap_or(0) as f64;
+            let g = u8::from_str_radix(&hex[2..4], 16).unwrap_or(0) as f64;
+            let b = u8::from_str_radix(&hex[4..6], 16).unwrap_or(0) as f64;
+            let a = u8::from_str_radix(&hex[6..8], 16).unwrap_or(255) as f64 / 255.0;
+            return Ok((r, g, b, a));
+        }
+        // Handle #RRGGBB (6 characters)
+        else if hex.len() == 6 {
             let r = u8::from_str_radix(&hex[0..2], 16).unwrap_or(0) as f64;
             let g = u8::from_str_radix(&hex[2..4], 16).unwrap_or(0) as f64;
             let b = u8::from_str_radix(&hex[4..6], 16).unwrap_or(0) as f64;
             return Ok((r, g, b, 1.0));
-        } else if hex.len() == 3 {
+        }
+        // Handle #RGBA (4 characters) ✨
+        else if hex.len() == 4 {
+            let r = u8::from_str_radix(&hex[0..1].repeat(2), 16).unwrap_or(0) as f64;
+            let g = u8::from_str_radix(&hex[1..2].repeat(2), 16).unwrap_or(0) as f64;
+            let b = u8::from_str_radix(&hex[2..3].repeat(2), 16).unwrap_or(0) as f64;
+            let a = u8::from_str_radix(&hex[3..4].repeat(2), 16).unwrap_or(255) as f64 / 255.0;
+            return Ok((r, g, b, a));
+        }
+        // Handle #RGB (3 characters)
+        else if hex.len() == 3 {
             let r = u8::from_str_radix(&hex[0..1].repeat(2), 16).unwrap_or(0) as f64;
             let g = u8::from_str_radix(&hex[1..2].repeat(2), 16).unwrap_or(0) as f64;
             let b = u8::from_str_radix(&hex[2..3].repeat(2), 16).unwrap_or(0) as f64;
@@ -556,8 +522,7 @@ pub fn parse_css_color(value: &str) -> Result<(f64, f64, f64, f64), String> {
     } else if value.starts_with("rgb") {
         return parse_rgb_color(&value);
     }
-
-    // Named colors
+    
     match value.as_str() {
         "red" => Ok((255.0, 0.0, 0.0, 1.0)),
         "green" => Ok((0.0, 128.0, 0.0, 1.0)),
@@ -574,11 +539,11 @@ fn parse_rgb_color(value: &str) -> Result<(f64, f64, f64, f64), String> {
     let end = value.find(')').ok_or("Invalid rgb format")?;
     let content = &value[start + 1..end];
     let parts: Vec<&str> = content.split(',').collect();
-
+    
     if parts.len() < 3 {
         return Err("RGB requires at least 3 values".to_string());
     }
-
+    
     let r = parts[0].trim().parse::<f64>().unwrap_or(0.0);
     let g = parts[1].trim().parse::<f64>().unwrap_or(0.0);
     let b = parts[2].trim().parse::<f64>().unwrap_or(0.0);
@@ -587,6 +552,6 @@ fn parse_rgb_color(value: &str) -> Result<(f64, f64, f64, f64), String> {
     } else {
         1.0
     };
-
+    
     Ok((r, g, b, a))
 }

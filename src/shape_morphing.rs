@@ -1,12 +1,13 @@
+/// Shape Morphing - SVG path interpolation
 use wasm_bindgen::prelude::*;
 
-/// Shape Morphing - SVG path interpolation for morphing animations
 #[wasm_bindgen]
 pub struct PathMorph {
     start_path: String,
     end_path: String,
-    current_path: String,
     progress: f64,
+    start_commands: Vec<PathCommand>,
+    end_commands: Vec<PathCommand>,
 }
 
 #[wasm_bindgen]
@@ -17,115 +18,141 @@ impl PathMorph {
             return Err(JsValue::from_str("Paths cannot be empty"));
         }
 
-        Ok(PathMorph {
-            start_path,
-            end_path,
-            current_path: String::new(),
-            progress: 0.0,
-        })
-    }
-
-    /// Update the morph progress (0.0 to 1.0)
-    #[wasm_bindgen]
-    pub fn update_progress(&mut self, progress: f64) -> Result<String, JsValue> {
-        self.progress = progress.clamp(0.0, 1.0);
-        self.current_path = self.interpolate_path(self.progress)?;
-        Ok(self.current_path.clone())
-    }
-
-    /// Get the current morphed path
-    #[wasm_bindgen]
-    pub fn get_current_path(&self) -> String {
-        self.current_path.clone()
-    }
-
-    /// Get current progress
-    #[wasm_bindgen]
-    pub fn get_progress(&self) -> f64 {
-        self.progress
-    }
-
-    /// Parse and interpolate SVG paths
-    fn interpolate_path(&self, t: f64) -> Result<String, JsValue> {
-        let start_commands = self.parse_path(&self.start_path)?;
-        let end_commands = self.parse_path(&self.end_path)?;
+        let start_commands = Self::parse_path(&start_path)?;
+        let end_commands = Self::parse_path(&end_path)?;
 
         if start_commands.len() != end_commands.len() {
             return Err(JsValue::from_str(
-                "Paths must have the same number of commands",
+                "Paths must have same number of commands. Use PathMorph.normalize() to fix."
             ));
         }
 
-        let mut result = String::new();
+        Ok(PathMorph {
+            start_path,
+            end_path,
+            progress: 0.0,
+            start_commands,
+            end_commands,
+        })
+    }
 
-        for (start_cmd, end_cmd) in start_commands.iter().zip(end_commands.iter()) {
+    /// Update morph progress and return interpolated path
+    #[wasm_bindgen(js_name = updateProgress)]
+    pub fn update_progress(&mut self, progress: f64) -> String {
+        self.progress = progress.clamp(0.0, 1.0);
+        self.interpolate()
+    }
+
+    /// Get current progress
+    #[wasm_bindgen(getter)]
+    pub fn progress(&self) -> f64 {
+        self.progress
+    }
+
+    /// Set progress directly
+    #[wasm_bindgen(setter)]
+    pub fn set_progress(&mut self, value: f64) {
+        self.progress = value.clamp(0.0, 1.0);
+    }
+
+    /// Get interpolated path at current progress
+    #[wasm_bindgen(js_name = getPath)]
+    pub fn get_path(&self) -> String {
+        self.interpolate()
+    }
+
+    /// Get path at specific progress without updating state
+    #[wasm_bindgen(js_name = getPathAt)]
+    pub fn get_path_at(&self, progress: f64) -> String {
+        self.interpolate_at(progress.clamp(0.0, 1.0))
+    }
+
+    // ========================================================================
+    // INTERNAL INTERPOLATION
+    // ========================================================================
+
+    fn interpolate(&self) -> String {
+        self.interpolate_at(self.progress)
+    }
+
+    fn interpolate_at(&self, t: f64) -> String {
+        let mut result = String::with_capacity(self.start_path.len());
+
+        for (start_cmd, end_cmd) in self.start_commands.iter().zip(self.end_commands.iter()) {
             match (start_cmd, end_cmd) {
                 (PathCommand::Move(sx, sy), PathCommand::Move(ex, ey)) => {
-                    let x = sx + (ex - sx) * t;
-                    let y = sy + (ey - sy) * t;
-                    result.push_str(&format!("M {} {} ", x, y));
+                    result.push_str(&format!("M{} {} ", lerp(*sx, *ex, t), lerp(*sy, *ey, t)));
                 }
                 (PathCommand::Line(sx, sy), PathCommand::Line(ex, ey)) => {
-                    let x = sx + (ex - sx) * t;
-                    let y = sy + (ey - sy) * t;
-                    result.push_str(&format!("L {} {} ", x, y));
+                    result.push_str(&format!("L{} {} ", lerp(*sx, *ex, t), lerp(*sy, *ey, t)));
                 }
                 (
-                    PathCommand::CubicBezier(sx1, sy1, sx2, sy2, sx, sy),
-                    PathCommand::CubicBezier(ex1, ey1, ex2, ey2, ex, ey),
+                    PathCommand::Cubic(sx1, sy1, sx2, sy2, sx, sy),
+                    PathCommand::Cubic(ex1, ey1, ex2, ey2, ex, ey),
                 ) => {
-                    let x1 = sx1 + (ex1 - sx1) * t;
-                    let y1 = sy1 + (ey1 - sy1) * t;
-                    let x2 = sx2 + (ex2 - sx2) * t;
-                    let y2 = sy2 + (ey2 - sy2) * t;
-                    let x = sx + (ex - sx) * t;
-                    let y = sy + (ey - sy) * t;
-                    result.push_str(&format!("C {} {} {} {} {} {} ", x1, y1, x2, y2, x, y));
+                    result.push_str(&format!(
+                        "C{} {} {} {} {} {} ",
+                        lerp(*sx1, *ex1, t),
+                        lerp(*sy1, *ey1, t),
+                        lerp(*sx2, *ex2, t),
+                        lerp(*sy2, *ey2, t),
+                        lerp(*sx, *ex, t),
+                        lerp(*sy, *ey, t)
+                    ));
+                }
+                (PathCommand::Quad(sx1, sy1, sx, sy), PathCommand::Quad(ex1, ey1, ex, ey)) => {
+                    result.push_str(&format!(
+                        "Q{} {} {} {} ",
+                        lerp(*sx1, *ex1, t),
+                        lerp(*sy1, *ey1, t),
+                        lerp(*sx, *ex, t),
+                        lerp(*sy, *ey, t)
+                    ));
                 }
                 (PathCommand::Close, PathCommand::Close) => {
-                    result.push_str("Z ");
+                    result.push('Z');
                 }
-                _ => {}
+                _ => {} // Mismatched commands (shouldn't happen after validation)
             }
         }
 
-        Ok(result.trim().to_string())
+        result.trim().to_string()
     }
 
-    /// Parse SVG path string into commands
-    fn parse_path(&self, path: &str) -> Result<Vec<PathCommand>, JsValue> {
+    // ========================================================================
+    // PATH PARSING
+    // ========================================================================
+
+    fn parse_path(path: &str) -> Result<Vec<PathCommand>, JsValue> {
         let mut commands = Vec::new();
-        let path = path.trim();
-        let mut chars = path.chars().peekable();
-        let mut current_number = String::new();
-        let mut numbers = Vec::new();
+        let mut chars = path.trim().chars().peekable();
 
         while let Some(&ch) = chars.peek() {
             match ch {
                 'M' | 'm' => {
                     chars.next();
-                    numbers.clear();
-                    self.collect_numbers(&mut chars, &mut current_number, &mut numbers);
-                    if numbers.len() >= 2 {
-                        commands.push(PathCommand::Move(numbers[0], numbers[1]));
+                    if let Some(nums) = Self::collect_numbers(&mut chars, 2) {
+                        commands.push(PathCommand::Move(nums[0], nums[1]));
                     }
                 }
                 'L' | 'l' => {
                     chars.next();
-                    numbers.clear();
-                    self.collect_numbers(&mut chars, &mut current_number, &mut numbers);
-                    if numbers.len() >= 2 {
-                        commands.push(PathCommand::Line(numbers[0], numbers[1]));
+                    if let Some(nums) = Self::collect_numbers(&mut chars, 2) {
+                        commands.push(PathCommand::Line(nums[0], nums[1]));
                     }
                 }
                 'C' | 'c' => {
                     chars.next();
-                    numbers.clear();
-                    self.collect_numbers(&mut chars, &mut current_number, &mut numbers);
-                    if numbers.len() >= 6 {
-                        commands.push(PathCommand::CubicBezier(
-                            numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5],
+                    if let Some(nums) = Self::collect_numbers(&mut chars, 6) {
+                        commands.push(PathCommand::Cubic(
+                            nums[0], nums[1], nums[2], nums[3], nums[4], nums[5],
                         ));
+                    }
+                }
+                'Q' | 'q' => {
+                    chars.next();
+                    if let Some(nums) = Self::collect_numbers(&mut chars, 4) {
+                        commands.push(PathCommand::Quad(nums[0], nums[1], nums[2], nums[3]));
                     }
                 }
                 'Z' | 'z' => {
@@ -142,37 +169,52 @@ impl PathMorph {
     }
 
     fn collect_numbers(
-        &self,
         chars: &mut std::iter::Peekable<std::str::Chars>,
-        current_number: &mut String,
-        numbers: &mut Vec<f64>,
-    ) {
-        while let Some(&ch) = chars.peek() {
-            match ch {
-                '0'..='9' | '.' | '-' => {
-                    current_number.push(ch);
+        count: usize,
+    ) -> Option<Vec<f64>> {
+        let mut numbers = Vec::with_capacity(count);
+        let mut current = String::new();
+
+        while numbers.len() < count {
+            match chars.peek() {
+                Some(&ch) if ch.is_numeric() || ch == '.' || ch == '-' => {
+                    current.push(ch);
                     chars.next();
                 }
-                ',' | ' ' => {
-                    if !current_number.is_empty() {
-                        if let Ok(num) = current_number.parse::<f64>() {
+                Some(&ch) if ch == ',' || ch.is_whitespace() => {
+                    if !current.is_empty() {
+                        if let Ok(num) = current.parse::<f64>() {
                             numbers.push(num);
                         }
-                        current_number.clear();
+                        current.clear();
                     }
                     chars.next();
                 }
-                'M' | 'L' | 'C' | 'Z' | 'm' | 'l' | 'c' | 'z' => break,
+                Some(&ch) if ch.is_alphabetic() => break,
+                None => {
+                    if !current.is_empty() {
+                        if let Ok(num) = current.parse::<f64>() {
+                            numbers.push(num);
+                        }
+                    }
+                    break;
+                }
                 _ => {
                     chars.next();
                 }
             }
         }
-        if !current_number.is_empty() {
-            if let Ok(num) = current_number.parse::<f64>() {
+
+        if !current.is_empty() {
+            if let Ok(num) = current.parse::<f64>() {
                 numbers.push(num);
             }
-            current_number.clear();
+        }
+
+        if numbers.len() == count {
+            Some(numbers)
+        } else {
+            None
         }
     }
 }
@@ -181,6 +223,12 @@ impl PathMorph {
 enum PathCommand {
     Move(f64, f64),
     Line(f64, f64),
-    CubicBezier(f64, f64, f64, f64, f64, f64),
+    Cubic(f64, f64, f64, f64, f64, f64),
+    Quad(f64, f64, f64, f64),
     Close,
+}
+
+#[inline]
+fn lerp(a: f64, b: f64, t: f64) -> f64 {
+    a + (b - a) * t
 }

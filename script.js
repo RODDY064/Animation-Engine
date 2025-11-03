@@ -3,22 +3,27 @@ let lastFrameTime = 0;
 
 async function initBig() {
   try {
-    const { default: init, Animation } = await import( "./pkg/animation_engine.js");
+    const {
+      default: init,
+      Animation,
+      AnimationChoreographer,
+    } = await import("./pkg/animation_engine.js");
     await init();
 
-    console.log("it loaded")
+    console.log("it loaded");
 
     const box = document.querySelector(".box");
+    const box2 = document.querySelector(".box2");
     let animationStart = 0;
+
 
     function animate() {
       box.style.transform = "translate3d(0px, 0px, 0px)";
-       let anim = new Animation(box)
+      let anim = new Animation(box)
         .spring_smooth(Infinity)
         .set_delay(1000)
-        .animate({ rotate:360 })
+        .animate({ rotate: 360 })
         .start();
-
     }
 
     animate();
@@ -27,5 +32,4 @@ async function initBig() {
   }
 }
 
-
-initBig()
+initBig();

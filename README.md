@@ -1,6 +1,6 @@
-# UI Animation Engine - WebAssembly
+# UI Animation Engine
 
-A high-performance, UIKit-inspired animation engine compiled to WebAssembly. Brings native iOS animation feel to web applications with GPU acceleration, spring physics, and gesture integration.
+A high-performance, Apple-inspired animation engine compiled to WebAssembly. Brings native iOS animation quality to the web with spring physics, gesture control, and GPU acceleration.
 
 **Author:** RODDY064
 
@@ -8,32 +8,18 @@ A high-performance, UIKit-inspired animation engine compiled to WebAssembly. Bri
 
 ## ✨ Features
 
-- 🎯 **UIKit-Compatible API** - Familiar to iOS developers
-- ⚡ **60-120 FPS Performance** - GPU-accelerated transforms
-- 🎢 **Spring Physics** - Natural, organic motion
-- 👆 **Gesture Integration** - Touch velocity tracking
-- 🔄 **Animation Groups** - Synchronized animations
-- 🎨 **Shape Morphing** - SVG path interpolation
-- ✨ **Particle Effects** - Multi-element animations
-- 🎯 **Keyframe Support** - Complex multi-step sequences
-- 🎪 **Advanced Controls** - Pause, resume, reverse, scrub
-- 🌊 **Additive Animations** - Layer effects smoothly
-
----
-
-<!-- ## 📦 Installation
-
-```bash
-npm install animation-engine
-# or
-yarn add animation-engine
-``` -->
+- 🎯 **Apple-Quality Animations** - UIKit/SwiftUI-inspired API
+- ⚡ **60-120 FPS** - GPU-accelerated transforms
+- 🎢 **Real Spring Physics** - Natural, organic motion
+- 👆 **Gesture Integration** - Touch velocity tracking & interactive control
+- 🎬 **Choreography System** - Coordinate complex transitions
+- 📊 **Timeline Sequencing** - Declarative animation composition
+- 🎯 **Interactive Scrubbing** - Manual timeline control
+- 🎨 **Full Property Support** - Transform, color, filter, SVG
 
 ---
 
 ## 🚀 Quick Start
-
-### Basic Animation
 
 ```javascript
 import init, { Animation } from 'animation-engine';
@@ -41,1678 +27,692 @@ import init, { Animation } from 'animation-engine';
 await init();
 
 const element = document.getElementById('box');
+
+// Simple animation
 new Animation(element)
     .smooth(400)
     .animate({ x: 200, opacity: 0.5 })
     .start();
 ```
 
-### With HTML
-
-```html
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        #box {
-            width: 100px;
-            height: 100px;
-            background: #667eea;
-            will-change: transform;
-        }
-    </style>
-</head>
-<body>
-    <div id="box"></div>
-    
-    <script type="module">
-        import init, { Animation } from './pkg/animation_engine.js';
-        
-        async function main() {
-            await init();
-            
-            const box = document.getElementById('box');
-            
-            new Animation(box)
-                .smooth(400)
-                .animate({ x: 200, opacity: 0.5 })
-                .start();
-        }
-        
-        main();
-    </script>
-</body>
-</html>
-```
-
-### Multiple Elements
-
-```javascript
-const elements = document.querySelectorAll('.box');
-
-elements.forEach((element, index) => {
-    new Animation(element)
-        .smooth(400)
-        .set_delay(index * 100)  // Stagger animations
-        .animate({ x: 200, scale: 1.2 })
-        .start();
-});
-```
-
 ---
 
-## 📚 Table of Contents
+## 🎬 Core API
 
-1. [Basic Animation](#basic-animation)
-2. [Timing Curves](#timing-curves)
-3. [Animatable Properties](#animatable-properties)
-4. [Animation Scrubbing](#animation-scrubbing)
-5. [Keyframe Animations](#keyframe-animations)
-6. [Gesture Velocity](#gesture-velocity)
-7. [Additive Animations](#additive-animations)
-8. [Completion Callbacks](#completion-callbacks)
-9. [Playback Control](#playback-control)
-10. [Spring Physics](#spring-physics)
-11. [Advanced Features](#advanced-features)
-12. [Animation Groups](#animation-groups)
-13. [Shape Morphing](#shape-morphing)
-14. [Conditional Animations](#conditional-animations)
-15. [Transactions](#transactions)
-16. [GPU Acceleration](#gpu-acceleration)
-17. [Complete Examples](#complete-examples)
-18. [Performance Tips](#performance-tips)
-19. [API Reference](#api-reference)
-
----
-
-## 🎬 Basic Animation
-
-### Simple Property Animation
-
+### Animation Basics
 ```javascript
+// Choose your timing curve
+.smooth(400)      // Apple's signature curve (recommended)
+.snappy(300)      // Quick & responsive
+.bounce(500)      // Playful overshoot
+.ease_out(400)    // Classic iOS feel
+
+// Animate properties
+.animate({
+    x: 200,           // Transform
+    scale: 1.5,
+    rotate: 360,
+    opacity: 0.5,     // Visual
+    blur: 10,         // Filters
+    width: "300px"    // Layout
+})
+
+// Control playback
+.start()
+.pause()
+.resume()
+.reverse()
+```
+
+### Spring Physics
+```javascript
+// Built-in spring presets
 new Animation(element)
-    .smooth(400)
-    .animate({ x: 200, opacity: 0.5 })
-    .start();
-```
-
-### Chaining Properties
-
-```javascript
-new Animation(element)
-    .smooth(600)
-    .animate({
-        x: 200,
-        y: 100,
-        scale: 1.5,
-        opacity: 0.8
-    })
-    .start();
-```
-
-### Animation Flow
-
-```javascript
-new Animation(element)
-    .smooth(400)                    // Step 1: Choose timing
-    .animate({ x: 200 })            // Step 2: Define properties
-    .start();                        // Step 3: Start animation
-```
-
----
-
-## 🎯 Timing Curves
-
-Choose the right timing for your animation's feel and purpose.
-
-### Available Curves
-
-```javascript
-.smooth(duration)      // Apple's premium curve (recommended)
-.snappy(duration)      // Quick, responsive, punchy
-.bounce(duration)      // Overshoot effect, playful
-.ease_out(duration)    // Classic iOS, fast to slow
-.ease_in(duration)     // Slow to fast, acceleration
-.ease_in_out(duration) // S-curve, smooth both ends
-.linear(duration)      // Constant speed, mechanical
-.cubic(x1, y1, x2, y2, duration)  // Custom Bezier curve
-```
-
-### Duration Guidelines
-
-```javascript
-// Quick feedback (hover, tap)
-.smooth(200)
-.snappy(150)
-
-// Standard transitions
-.smooth(400)
-.snappy(300)
-
-// Hero animations
-.smooth(800)
-.ease_out(1200)
-
-// Long sequences
-.smooth(1500)
-.bounce(2000)
-```
-
-### Custom Bezier Curves
-
-```javascript
-// Define custom easing
-new Animation(element)
-    .cubic(0.42, 0, 0.58, 1, 400)  // ease-in-out
+    .spring_smooth()    // Polished (400 stiffness, 40 damping)
+    .spring_bouncy()    // Playful (250, 15)
+    .spring_default()   // Balanced (300, 30)
     .animate({ x: 200 })
     .start();
 
-// Common Bezier values
-// ease-out: (0, 0, 0.58, 1)
-// ease-in: (0.42, 0, 1, 1)
-// ease-in-out: (0.42, 0, 0.58, 1)
+// Custom spring
+const spring = new Spring(350, 28); // stiffness, damping
+spring.update(targetValue, deltaTime);
 ```
 
 ---
 
-## 🎨 Animatable Properties
+## 👆 Gesture Control
 
-### Transform Properties
-
+### Interactive Animations
 ```javascript
-new Animation(element)
-    .smooth(400)
-    .animate({
-        // Translation
-        x: 200,              // translateX in pixels
-        y: 100,              // translateY in pixels
-        z: 0,                // translateZ in pixels (3D)
-        
-        // Scale
-        scale: 1.5,          // uniform scale
-        scale_x: 2.0,        // scale X only
-        scale_y: 0.5,        // scale Y only
-        
-        // Rotation
-        rotate: 180,         // rotate in degrees
-        rotate_x: 45,        // rotateX in degrees (3D)
-        rotate_y: 30,        // rotateY in degrees (3D)
-        rotate_z: 90,        // rotateZ in degrees
-        
-        // Skew
-        skew_x: 10,          // skewX in degrees
-        skew_y: 5,           // skewY in degrees
-    })
-    .start();
+import { GestureController } from 'animation-engine';
+
+const gesture = new GestureController()
+    .withSpring(Spring.smooth());
+gesture.connectAnimation(animation);
+
+// Touch events
+element.addEventListener('touchstart', (e) => {
+    gesture.onTapDown(e.touches[0].clientX, e.touches[0].clientY, e.timeStamp);
+});
+
+element.addEventListener('touchmove', (e) => {
+    gesture.onTapMove(e.touches[0].clientX, e.touches[0].clientY, e.timeStamp);
+});
+
+element.addEventListener('touchend', () => {
+    gesture.onTapUp(); // Auto-completes or cancels
+});
 ```
 
-### Visual Properties
-
+### Configuration
 ```javascript
-new Animation(element)
-    .smooth(400)
-    .animate({
-        // Opacity & Visibility
-        opacity: 0.5,                    // 0 to 1
-        visibility: "hidden",            // "visible", "hidden", "collapse"
-        
-        // Colors
-        background_color: "#667eea",
-        color: "#000",
-        border_color: "rgb(100, 200, 255)",
-        
-        // Sizing
-        width: "300px",
-        height: "200px",
-        min_width: "100px",
-        max_height: "500px",
-        
-        // Border & Radius
-        border_radius: "20px",
-        border_width: "2px",
-    })
-    .start();
-```
-
-### Filter Effects
-
-```javascript
-new Animation(element)
-    .smooth(600)
-    .animate({
-        blur: 10,              // pixels (0-50)
-        brightness: 1.5,       // 0-2
-        contrast: 1.2,         // 0-2
-        saturate: 0.8,         // 0-2
-        hue: 180,              // degrees (0-360)
-        grayscale: 0.5,        // 0-1
-        invert: 0.3,           // 0-1
-        sepia: 0.7,            // 0-1
-    })
-    .start();
-```
-
-### Advanced Transform Properties
-
-```javascript
-new Animation(element)
-    .smooth(400)
-    .animate({
-        // Transform Origin
-        transform_origin_x: "50%",
-        transform_origin_y: "50%",
-        transform_origin_z: "0",
-        
-        // Perspective
-        perspective: 1000,
-        perspective_origin_x: "50%",
-        perspective_origin_y: "50%",
-    })
-    .start();
-```
-
-### Shadow Properties
-
-```javascript
-new Animation(element)
-    .smooth(400)
-    .animate({
-        shadow_offset_x: 5,
-        shadow_offset_y: 10,
-        shadow_blur: 20,
-        shadow_spread: 2,
-        shadow_color: "rgba(0, 0, 0, 0.3)",
-    })
-    .start();
-```
-
-### SVG Properties
-
-```javascript
-new Animation(svgPath)
-    .smooth(2000)
-    .animate({
-        stroke_dashoffset: 0,
-        stroke_width: 3,
-        fill_opacity: 1.0,
-        stroke_opacity: 0.8,
-    })
-    .start();
+gesture.sensitivity = 500;           // Pixels for full range
+gesture.completionThreshold = 0.5;   // When to complete vs cancel
 ```
 
 ---
 
-## 🎮 Animation Scrubbing
+## 🎭 Choreography
 
-Manually control animation progress like UIViewPropertyAnimator.
+### Coordinate Transitions
+```javascript
+import { Choreographer, TransitionContext } from 'animation-engine';
 
-### Basic Scrubbing
+const choreographer = new Choreographer(TransitionContext.Present);
+
+// Add multiple animations
+choreographer.addAnimation(modalAnimation.start());
+choreographer.addAnimation(overlayAnimation.start());
+
+// Interactive control
+choreographer.beginInteractive();
+choreographer.updateInteractive(progress);
+choreographer.finishInteractive(velocity); // Smart completion
+```
+
+### Contexts
+```javascript
+TransitionContext.Present  // Modal presentation
+TransitionContext.Dismiss  // Modal dismissal
+TransitionContext.Push     // Navigation push
+TransitionContext.Pop      // Navigation pop
+```
+
+---
+
+## 📊 Timeline Sequencing
+
+### Declarative Composition
+```javascript
+import { Sequencer } from 'animation-engine';
+
+const sequencer = new Sequencer();
+
+sequencer.then(anim1);         // Sequential - starts after previous
+sequencer.with(anim2);         // Parallel - starts with previous
+sequencer.overlap(anim3, 0.7); // Starts at 70% of previous
+
+sequencer.play();
+sequencer.seekTo(0.5); // Scrub to 50%
+```
+
+### Timeline Control
+```javascript
+sequencer.play();
+sequencer.pause();
+sequencer.stop();
+sequencer.seekTo(fraction); // 0.0 - 1.0
+
+// Query state
+console.log(sequencer.totalDuration);
+console.log(sequencer.fraction);
+console.log(sequencer.isRunning);
+```
+
+---
+
+## 🎯 Animatable Properties
+
+```javascript
+.animate({
+    // Transform
+    x, y, z: 200,
+    scale, scale_x, scale_y: 1.5,
+    rotate, rotate_x, rotate_y, rotate_z: 360,
+    skew_x, skew_y: 10,
+    
+    // Visual
+    opacity: 0.5,
+    background_color: "#667eea",
+    color: "#000",
+    border_color: "rgb(100, 200, 255)",
+    
+    // Layout
+    width: "300px",
+    height: "200px",
+    border_radius: "20px",
+    
+    // Filters
+    blur: 10,
+    brightness: 1.5,
+    contrast: 1.2,
+    saturate: 0.8,
+    hue: 180,
+    grayscale: 0.5,
+    
+    // Shadows
+    shadow_offset_x: 5,
+    shadow_offset_y: 10,
+    shadow_blur: 20,
+    shadow_color: "rgba(0,0,0,0.3)",
+    
+    // SVG
+    stroke_dashoffset: 0,
+    stroke_width: 3,
+    fill_opacity: 1.0
+})
+```
+
+---
+
+## 🎮 Interactive Scrubbing
 
 ```javascript
 const anim = new Animation(element)
     .smooth(1000)
     .animate({ x: 200, rotate: 360 });
 
-// Don't call .start() - control manually
+// Manual control (don't call .start())
 anim.set_fraction_complete(0.0);   // Start
-anim.set_fraction_complete(0.5);   // Jump to 50%
+anim.set_fraction_complete(0.5);   // 50%
 anim.set_fraction_complete(1.0);   // End
-```
 
-### Interactive Slider
-
-```javascript
-const slider = document.getElementById('progress-slider');
-const element = document.getElementById('box');
-
-const anim = new Animation(element)
-    .smooth(1000)
-    .animate({ x: 300, scale: 1.5 });
-
-slider.addEventListener('input', (e) => {
-    const progress = e.target.value / 100;
-    anim.set_fraction_complete(progress);
-});
-```
-
-### Timeline Scrubber
-
-```javascript
-const timeline = document.getElementById('timeline');
-const element = document.getElementById('box');
-
-const anim = new Animation(element)
-    .smooth(5000)
-    .animate({ x: 200, y: 100, scale: 2 });
-
-document.addEventListener('mousemove', (e) => {
-    const rect = timeline.getBoundingClientRect();
-    const progress = (e.clientX - rect.left) / rect.width;
-    anim.set_fraction_complete(Math.max(0, Math.min(1, progress)));
-});
-```
-
-### Get Current Progress
-
-```javascript
-const progress = anim.get_fraction_complete();  // 0.0 to 1.0
-console.log(`Animation is ${progress * 100}% complete`);
-
-const state = anim.get_state();  
-// 0 = Idle
-// 1 = Running
-// 2 = Paused
-// 3 = Completed
-
-if (state === 1) {
-    console.log('Animation is currently running');
-}
+// Query progress
+const progress = anim.get_fraction_complete(); // 0.0 - 1.0
+const state = anim.get_state(); // Idle, Running, Paused, Completed
 ```
 
 ---
 
 ## 🔗 Keyframe Animations
 
-Multi-step animations with precise control over each phase.
-
-### Triangle Path
-
-```javascript
-new Animation(element)
-    .smooth(1500)
-    .add_keyframe({ time: 0.0, x: 0, y: 0 })
-    .add_keyframe({ time: 0.33, x: 200, y: 0 })
-    .add_keyframe({ time: 0.66, x: 100, y: 100 })
-    .add_keyframe({ time: 1.0, x: 0, y: 0 })
-    .start();
-```
-
-### Complex Multi-Property Animation
-
 ```javascript
 new Animation(element)
     .smooth(2000)
-    .add_keyframe({ 
-        time: 0.0, 
-        x: 0, 
-        y: 0, 
-        scale: 1, 
-        opacity: 1,
-        rotate: 0
-    })
-    .add_keyframe({ 
-        time: 0.25, 
-        x: 100, 
-        y: -20, 
-        scale: 1.5, 
-        opacity: 0.5,
-        rotate: 90
-    })
-    .add_keyframe({ 
-        time: 0.5, 
-        x: 200, 
-        y: 0, 
-        scale: 2, 
-        opacity: 1,
-        rotate: 180
-    })
-    .add_keyframe({ 
-        time: 0.75, 
-        x: 200, 
-        y: 50, 
-        scale: 0.8, 
-        opacity: 1,
-        rotate: 270
-    })
-    .add_keyframe({ 
-        time: 1.0, 
-        x: 0, 
-        y: 0, 
-        scale: 1, 
-        opacity: 1,
-        rotate: 360
-    })
-    .start();
-```
-
-### Keyframe Timing
-
-```javascript
-// time: 0.0 to 1.0 (relative to total duration)
-// Each keyframe triggers at (time * duration)
-
-new Animation(element)
-    .smooth(2000)  // 2000ms total
-    .add_keyframe({ time: 0.0, x: 0 })      // at 0ms
-    .add_keyframe({ time: 0.25, x: 100 })   // at 500ms
-    .add_keyframe({ time: 0.5, x: 200 })    // at 1000ms
-    .add_keyframe({ time: 0.75, x: 100 })   // at 1500ms
-    .add_keyframe({ time: 1.0, x: 0 })      // at 2000ms
-    .start();
-```
-
-### Easing Between Keyframes
-
-```javascript
-// Easing applies BETWEEN keyframes, not individual keyframes
-new Animation(element)
-    .ease_out(1000)  // ease-out applies between all keyframes
-    .add_keyframe({ time: 0.0, x: 0, y: 0 })
-    .add_keyframe({ time: 0.5, x: 200, y: 200 })
-    .add_keyframe({ time: 1.0, x: 0, y: 0 })
-    .start();
-```
-
-### Batch Keyframes
-
-```javascript
-new Animation(element)
-    .smooth(3000)
     .add_keyframes([
-        { time: 0.0, x: 0, y: 0, scale: 1 },
-        { time: 0.25, x: 100, y: 50, scale: 1.2 },
-        { time: 0.5, x: 200, y: 0, scale: 1.4 },
+        { time: 0.0,  x: 0,   y: 0,   scale: 1 },
+        { time: 0.25, x: 100, y: 50,  scale: 1.2 },
+        { time: 0.5,  x: 200, y: 0,   scale: 1.5 },
         { time: 0.75, x: 100, y: -50, scale: 1.2 },
-        { time: 1.0, x: 0, y: 0, scale: 1 },
+        { time: 1.0,  x: 0,   y: 0,   scale: 1 }
     ])
     .start();
 ```
 
 ---
 
-## 👆 Gesture Velocity
+## 🎪 Advanced Features
 
-Track touch velocity and apply it to spring animations.
-
-### Basic Gesture Handling
-
+### Continue Previous State
 ```javascript
-import init, { Animation, GestureRecognizer } from 'animation-engine';
+// Preserve transform between animations
+new Animation(element)
+    .smooth(400)
+    .continue_animate()  // Start from current position
+    .animate({ x: 200 })
+    .start();
+```
 
-await init();
+### Additive Animations
+```javascript
+// Layer multiple animations
+new Animation(element)
+    .smooth(500)
+    .additive()  // Doesn't cancel existing animations
+    .animate({ x: 200 })
+    .start();
+```
 
-const gestureRecognizer = new GestureRecognizer();
-const element = document.getElementById('draggable');
+### Repeating
+```javascript
+new Animation(element)
+    .smooth(400)
+    .repeat(5)           // Repeat 5 times
+    .auto_reverse()      // Reverse on each repeat
+    .animate({ x: 200 })
+    .start();
+```
 
+### Callbacks
+```javascript
+new Animation(element)
+    .smooth(400)
+    .animate({ x: 200 })
+    .on_complete(() => {
+        console.log('Done!');
+    })
+    .start();
+```
+
+---
+
+## 🎨 Shape Morphing
+
+### SVG Path Interpolation
+```javascript
+import { PathMorph } from 'animation-engine';
+
+const startPath = "M10 10 L90 10 L50 80 Z";
+const endPath = "M10 80 L90 80 L50 10 Z";
+
+const morph = new PathMorph(startPath, endPath);
+
+// Manual control
+const path = morph.updateProgress(0.5);
+svgElement.setAttribute('d', path);
+
+// With Animation
+const anim = new Animation(element)
+    .smooth(1000)
+    .animate({ /* properties */ });
+
+function updateMorph() {
+    const path = morph.updateProgress(anim.get_fraction_complete());
+    svgElement.setAttribute('d', path);
+    if (anim.get_state() === 1) requestAnimationFrame(updateMorph);
+}
+anim.start();
+updateMorph();
+```
+
+### Path Morphing Properties
+```javascript
+morph.progress = 0.5;           // Set directly
+const current = morph.progress; // Get current
+const path = morph.getPath();   // Get interpolated path
+const pathAt = morph.getPathAt(0.75); // Get path at specific progress
+```
+
+---
+
+## ✨ Particle System
+
+### Basic Particle Emission
+```javascript
+import { ParticleEmitter } from 'animation-engine';
+
+const emitter = new ParticleEmitter();
+
+// Configure
+emitter.setVelocity(0, -100);      // Initial velocity (vx, vy)
+emitter.setVelocityVariance(50);   // Randomness
+emitter.setGravity(200);            // Gravity force
+emitter.setLifetime(2.0, 0.5);     // Life duration + variance
+emitter.setMaxParticles(100);
+
+// Emit particles
+const particle = document.createElement('div');
+particle.className = 'particle';
+emitter.emit(particle, x, y);
+
+// Update loop
+function animate(time) {
+    emitter.update(deltaTime);
+    requestAnimationFrame(animate);
+}
+animate();
+```
+
+### Particle Presets
+```javascript
+import { ParticlePresets } from 'animation-engine';
+
+// Built-in effects
+const confetti = ParticlePresets.confetti();
+const smoke = ParticlePresets.smoke();
+const sparkle = ParticlePresets.sparkle();
+const explosion = ParticlePresets.explosion();
+
+// Use preset
+button.addEventListener('click', (e) => {
+    const particle = createParticle();
+    confetti.emit(particle, e.clientX, e.clientY);
+});
+```
+
+### Burst Effects
+```javascript
+// Emit multiple particles at once
+emitter.emitBurst(particleElement, x, y, 20);
+
+// Control emission
+emitter.start();  // Enable emission
+emitter.stop();   // Disable emission
+emitter.clear();  // Remove all particles
+
+// Query state
+console.log(emitter.particleCount);
+console.log(emitter.isActive);
+console.log(emitter.maxParticles);
+```
+
+---
+
+## 🔄 Animation Transactions
+
+### Batch Multiple Animations
+```javascript
+import { Transaction } from 'animation-engine';
+
+// Simple batch
+Transaction.batch(0.5, () => {
+    new Animation(el1).smooth(500).animate({ x: 200 }).start();
+    new Animation(el2).smooth(500).animate({ y: 100 }).start();
+    new Animation(el3).smooth(500).animate({ scale: 1.5 }).start();
+});
+
+// With completion
+Transaction.batchWithCompletion(
+    0.5,
+    () => {
+        // Animation block
+        new Animation(el1).smooth(500).animate({ x: 200 }).start();
+        new Animation(el2).smooth(500).animate({ y: 100 }).start();
+    },
+    () => {
+        // Completion block
+        console.log('All animations complete');
+    }
+);
+```
+
+### Manual Transaction Control
+```javascript
+const txn = new AnimationTransaction()
+    .setDuration(0.5)
+    .setTimingFunction(TimingFunction.EaseOut)
+    .disableActions()
+    .onComplete(() => console.log('Done'));
+
+txn.begin();
+
+// Execute animations within transaction
+new Animation(el1).smooth(500).animate({ x: 200 }).start();
+new Animation(el2).smooth(500).animate({ y: 100 }).start();
+
+txn.commit();
+
+// Query state
+console.log(txn.duration);
+console.log(txn.isActive);
+console.log(txn.elapsedTime);
+```
+
+### Timing Functions
+```javascript
+TimingFunction.Default   // Apple's smooth curve
+TimingFunction.Linear
+TimingFunction.EaseIn
+TimingFunction.EaseOut
+TimingFunction.EaseInOut
+```
+
+---
+
+## 💡 Complete Examples
+
+### Interactive Modal
+```javascript
+const modal = new Animation(modalElement)
+    .spring_smooth()
+    .animate({ y: 0, opacity: 1 });
+
+const gesture = new GestureController()
+    .withSpring(Spring.bouncy());
+
+gesture.connectAnimation(modal.start());
+
+// Touch handlers
 element.addEventListener('touchstart', (e) => {
-    const touch = e.touches[0];
-    gestureRecognizer.on_touch_start(
-        touch.clientX, 
-        touch.clientY, 
-        e.timeStamp
-    );
+    gesture.onTapDown(e.touches[0].clientX, e.touches[0].clientY, e.timeStamp);
 });
 
 element.addEventListener('touchmove', (e) => {
-    const touch = e.touches[0];
-    gestureRecognizer.on_touch_move(
-        touch.clientX, 
-        touch.clientY, 
-        e.timeStamp
-    );
-    
-    const dx = gestureRecognizer.get_displacement_x();
-    const dy = gestureRecognizer.get_displacement_y();
-    
-    // Update element position in real-time
-    element.style.transform = `translate(${dx}px, ${dy}px)`;
+    gesture.onTapMove(e.touches[0].clientX, e.touches[0].clientY, e.timeStamp);
 });
 
-element.addEventListener('touchend', (e) => {
-    gestureRecognizer.on_touch_end();
-    
-    // Get velocity from gesture
-    const vx = gestureRecognizer.get_velocity_x();
-    const vy = gestureRecognizer.get_velocity_y();
-    
-    // Animate to rest with velocity
-    new Animation(element)
-        .spring_bouncy()
-        .with_velocity('x', vx)
-        .with_velocity('y', vy)
-        .animate({ x: 0, y: 0 })
-        .start();
+element.addEventListener('touchend', () => {
+    gesture.onTapUp(); // Auto-completes or dismisses
 });
 ```
 
-### Mouse Gesture Tracking
-
+### Staggered Sequence
 ```javascript
-const gestureRecognizer = new GestureRecognizer();
-const element = document.getElementById('draggable');
-
-element.addEventListener('mousedown', (e) => {
-    gestureRecognizer.on_touch_start(e.clientX, e.clientY, e.timeStamp);
-});
-
-document.addEventListener('mousemove', (e) => {
-    if (gestureRecognizer.is_gesture_active()) {
-        gestureRecognizer.on_touch_move(e.clientX, e.clientY, e.timeStamp);
-        
-        const dx = gestureRecognizer.get_displacement_x();
-        const dy = gestureRecognizer.get_displacement_y();
-        
-        element.style.transform = `translate(${dx}px, ${dy}px)`;
-    }
-});
-
-document.addEventListener('mouseup', (e) => {
-    gestureRecognizer.on_touch_end();
-    
-    const vx = gestureRecognizer.get_velocity_x();
-    const vy = gestureRecognizer.get_velocity_y();
-    const distance = gestureRecognizer.get_distance();
-    
-    new Animation(element)
-        .spring_smooth()
-        .with_velocity('x', vx)
-        .with_velocity('y', vy)
-        .animate({ x: 0, y: 0 })
-        .start();
-});
-```
-
-### Per-Property Velocity
-
-```javascript
-new Animation(element)
-    .spring_default()
-    .with_velocity('x', 500)     // Fast horizontal motion
-    .with_velocity('y', 100)     // Slow vertical motion
-    .with_velocity('scale', 2)   // Quick scale change
-    .animate({ x: 0, y: 0, scale: 1 })
-    .start();
-```
-
-### Gesture Metrics
-
-```javascript
-const gestureRecognizer = new GestureRecognizer();
-
-// Get displacement
-const dx = gestureRecognizer.get_displacement_x();
-const dy = gestureRecognizer.get_displacement_y();
-
-// Get velocity (pixels per second)
-const vx = gestureRecognizer.get_velocity_x();
-const vy = gestureRecognizer.get_velocity_y();
-
-// Get total distance
-const distance = gestureRecognizer.get_distance();
-
-// Check if gesture active
-if (gestureRecognizer.is_gesture_active()) {
-    console.log('Gesture in progress');
-}
-```
-
----
-
-## 🔄 Additive Animations
-
-Layer multiple animations smoothly without canceling.
-
-### Basic Additive
-
-```javascript
-// Animation 1: Move right
-new Animation(element)
-    .smooth(500)
-    .additive()
-    .animate({ x: 200 })
-    .start();
-
-// Animation 2: Scale up (doesn't cancel #1)
-setTimeout(() => {
-    new Animation(element)
-        .snappy(300)
-        .additive()
-        .animate({ scale: 1.5 })
-        .start();
-}, 200);
-
-// Result: Smooth diagonal motion + scale combined
-```
-
-### Layer Multiple Effects
-
-```javascript
-// Start motion
-new Animation(element)
-    .smooth(600)
-    .additive()
-    .animate({ x: 200 })
-    .start();
-
-// Add rotation while moving
-setTimeout(() => {
-    new Animation(element)
-        .ease_out(800)
-        .additive()
-        .animate({ rotate: 360 })
-        .start();
-}, 100);
-
-// Add fade while moving and rotating
-setTimeout(() => {
-    new Animation(element)
-        .linear(500)
-        .additive()
-        .animate({ opacity: 0.5 })
-        .start();
-}, 200);
-
-// Result: All three animations combine smoothly
-```
-
-### Complex Stacking
-
-```javascript
-// Base animation
-new Animation(element)
-    .smooth(400)
-    .additive()
-    .animate({ x: 200, y: 100 })
-    .start();
-
-// Layer 1
-setTimeout(() => {
-    new Animation(element)
-        .snappy(300)
-        .additive()
-        .animate({ scale: 1.5 })
-        .start();
-}, 100);
-
-// Layer 2
-setTimeout(() => {
-    new Animation(element)
-        .bounce(500)
-        .additive()
-        .animate({ rotate: 45 })
-        .start();
-}, 200);
-
-// Layer 3
-setTimeout(() => {
-    new Animation(element)
-        .ease_in(600)
-        .additive()
-        .animate({ background_color: "#ff6b6b" })
-        .start();
-}, 300);
-```
-
-### Non-Additive (Override)
-
-```javascript
-// This REPLACES any existing animation
-new Animation(element)
-    .smooth(400)
-    // Don't call .additive()
-    .animate({ x: 200 })
-    .start();
-```
-
----
-
-## ✅ Completion Callbacks
-
-Chain and sequence animations with callbacks.
-
-### Basic Callback
-
-```javascript
-new Animation(element)
-    .smooth(400)
-    .animate({ x: 200 })
-    .on_complete(() => {
-        console.log('Animation finished!');
-    })
-    .start();
-```
-
-### Sequential Chaining
-
-```javascript
-new Animation(element)
-    .smooth(400)
-    .animate({ x: 200 })
-    .on_complete(() => {
-        new Animation(element)
-            .bounce(500)
-            .animate({ scale: 1.5 })
-            .on_complete(() => {
-                new Animation(element)
-                    .smooth(300)
-                    .animate({ x: 0, scale: 1 })
-                    .start();
-            })
-            .start();
-    })
-    .start();
-```
-
-### Promise Wrapper
-
-```javascript
-function animateElement(element, config, duration) {
-    return new Promise(resolve => {
-        new Animation(element)
-            .smooth(duration)
-            .animate(config)
-            .on_complete(resolve)
-            .start();
-    });
-}
-
-// Use with async/await
-async function runSequence() {
-    await animateElement(element, { x: 200 }, 400);
-    console.log('Step 1 complete');
-    
-    await animateElement(element, { scale: 1.5 }, 300);
-    console.log('Step 2 complete');
-    
-    await animateElement(element, { x: 0, scale: 1 }, 400);
-    console.log('Step 3 complete');
-}
-```
-
-### Array of Sequences
-
-```javascript
-const elements = document.querySelectorAll('.item');
-
-async function animateAll() {
-    for (const element of elements) {
-        await new Promise(resolve => {
-            new Animation(element)
-                .smooth(300)
-                .set_delay(100)
-                .animate({ x: 100, opacity: 0.5 })
-                .on_complete(resolve)
-                .start();
-        });
-    }
-    console.log('All animations complete');
-}
-
-animateAll();
-```
-
----
-
-## ⏯️ Playback Control
-
-Full animation playback control.
-
-### Play/Pause/Resume
-
-```javascript
-const handle = new Animation(element)
-    .smooth(1000)
-    .animate({ x: 200 })
-    .start();  // Returns AnimationHandle
-
-// Control playback
-handle.pause();   // Pause at current position
-handle.resume();  // Continue from where paused
-handle.stop();    // Stop and mark as completed
-handle.reverse(); // Smoothly reverse direction
-```
-
-### Animation State
-
-```javascript
-const handle = new Animation(element)
-    .smooth(1000)
-    .animate({ x: 200 })
-    .start();
-
-const state = handle.get_state();
-
-// States:
-// 0 = Idle (not started)
-// 1 = Running (in progress)
-// 2 = Paused (paused)
-// 3 = Completed (finished)
-
-if (state === 1) {
-    console.log('Animation is running');
-} else if (state === 2) {
-    console.log('Animation is paused');
-}
-```
-
-### Get/Set Progress
-
-```javascript
-const handle = new Animation(element)
-    .smooth(1000)
-    .animate({ x: 200 })
-    .start();
-
-// Get current progress (0.0 to 1.0)
-const progress = handle.get_fraction_complete();
-
-// Set progress
-handle.set_fraction_complete(0.5);  // Jump to 50%
-```
-
-### Delayed Start
-
-```javascript
-new Animation(element)
-    .smooth(400)
-    .set_delay(500)  // Wait 500ms before starting
-    .animate({ x: 200 })
-    .start();
-```
-
-### Repeat with Auto-Reverse
-
-```javascript
-new Animation(element)
-    .smooth(400)
-    .repeat(3)       // Repeat 3 times
-    .auto_reverse()  // Alternate direction each repeat
-    .animate({ x: 200 })
-    .start();
-
-// Animation plays: forward -> reverse -> forward
-```
-
-### Infinite Repeat
-
-```javascript
-new Animation(element)
-    .smooth(400)
-    .repeat(-1)      // Negative = infinite
-    .auto_reverse()
-    .animate({ x: 200 })
-    .start();
-```
-
----
-
-## 🌊 Spring Physics
-
-Natural, physics-based motion.
-
-### Preset Springs
-
-```javascript
-// Balanced (default)
-new Animation(element)
-    .spring_default()
-    .animate({ x: 200 })
-    .start();
-
-// Bouncy (more oscillation)
-new Animation(element)
-    .spring_bouncy()
-    .animate({ x: 200 })
-    .start();
-
-// Smooth (minimal bounce)
-new Animation(element)
-    .spring_smooth()
-    .animate({ x: 200 })
-    .start();
-```
-
-### Custom Spring Parameters
-
-```javascript
-new Animation(element)
-    .spring(300, 30)  // stiffness, damping
-    .animate({ x: 200 })
-    .start();
-```
-
-### Spring Parameter Guide
-
-**Stiffness** (typical: 200-500)
-```javascript
-// Soft (slow response)
-.spring(100, 30)
-
-// Balanced (iOS default)
-.spring(300, 30)
-
-// Stiff (quick response)
-.spring(500, 30)
-```
-
-**Damping** (typical: 15-50)
-```javascript
-// Bouncy (multiple overshoots)
-.spring(300, 10)
-
-// Moderate bounce (one overshoot)
-.spring(300, 30)
-
-// No overshoot (critically damped)
-.spring(300, 50)
-```
-
-### Spring vs Bezier
-
-```javascript
-// USE SPRING FOR:
-// - User-initiated interactions (tap, drag, swipe)
-// - Natural, organic feel
-// - Variable duration acceptable
-// - Velocity from gestures
-new Animation(element)
-    .spring_bouncy()
-    .with_velocity('x', gestureVelocity)
-    .animate({ x: 0 })
-    .start();
-
-// USE BEZIER FOR:
-// - Precise timing required
-// - Fixed duration needed
-// - System-initiated animations
-// - Simple fade/scale effects
-new Animation(element)
-    .smooth(400)  // Fixed duration
-    .animate({ opacity: 0 })
-    .start();
-```
-
----
-
-## 🎨 Advanced Features
-
-### Animation Groups (CAAnimationGroup)
-
-Group multiple animations to control them together.
-
-```javascript
-import init, { Animation, AnimationGroup } from 'animation-engine';
-
-await init();
-
-const group = new AnimationGroup("my-animations");
-
-// Create animations
-const box1 = document.getElementById('box1');
-const box2 = document.getElementById('box2');
-
-const anim1 = new Animation(box1)
-    .smooth(1000)
-    .animate({ x: 200 })
-    .start();
-
-const anim2 = new Animation(box2)
-    .snappy(1000)
-    .animate({ scale: 1.5 })
-    .start();
-
-// Add to group
-group.add_animation(anim1);
-group.add_animation(anim2);
-
-// Control all together
-group.play();      // Start all
-group.pause();     // Pause all
-group.resume();    // Resume all
-group.reverse();   // Reverse all
-group.stop();      // Stop all
-
-// Get info
-const count = group.get_animation_count();
-const isPlaying = group.is_playing_group();
-const id = group.get_group_id();
-```
-
-### Shape Morphing
-
-Animate between SVG paths smoothly.
-
-```javascript
-import init, { PathMorph } from 'animation-engine';
-
-await init();
-
-const morph = new PathMorph(
-    "M100 100 L150 200 L50 200 Z",  // Start shape
-    "M100 50 L170 100 L130 200 Z"   // End shape
-);
-
-const svgPath = document.querySelector('svg path');
-let progress = 0;
-
-const interval = setInterval(() => {
-    progress += 0.016;  // ~60fps
-    
-    const newPath = morph.update_progress(progress);
-    svgPath.setAttribute('d', newPath);
-    
-    if (progress >= 1.0) {
-        clearInterval(interval);
-    }
-}, 16);
-
-// Get current state
-const currentPath = morph.get_current_path();
-const currentProgress = morph.get_progress();
-```
-
-### Conditional Animations
-
-### If/Else Animation
-
-```javascript
-new Animation(element)
-    .animate_if(
-        isLoggedIn,  // condition
-        { x: 200, opacity: 1 },      // true case
-        { x: 0, opacity: 0 }         // false case
-    )
-    .smooth(400)
-    .start();
-```
-
-### Switch/Case Animation
-
-```javascript
-new Animation(element)
-    .animate_match(
-        userState,  // value to match
-        {
-            "0": { x: 0, y: 0 },           // idle
-            "1": { x: 100, y: 50 },        // active
-            "2": { x: 0, y: -100 }         // disabled
-        }
-    )
-    .smooth(300)
-    .start();
-
-// Also works with string values
-new Animation(element)
-    .animate_match(
-        theme,
-        {
-            "light": { opacity: 1, background_color: "#fff" },
-            "dark": { opacity: 0.8, background_color: "#000" }
-        }
-    )
-    .smooth(300)
-    .start();
-```
-
-### Ternary Animation
-
-```javascript
-new Animation(element)
-    .animate_ternary(
-        isDark,  // condition
-        1.0,     // true value
-        0.5,     // false value
-        "opacity"  // property
-    )
-    .smooth(300)
-    .start();
-```
-
----
-
-## 💼 Transactions (CATransaction)
-
-Batch animations with unified timing.
-
-```javascript
-import init, { Animation, AnimationTransaction } from 'animation-engine';
-
-await init();
-
-const transaction = new AnimationTransaction();
-transaction.set_duration(500);
-transaction.begin();
-
-const box1 = document.getElementById('box1');
-const box2 = document.getElementById('box2');
-
-// Create animations with transaction duration
-new Animation(box1)
-    .smooth(transaction.get_duration())
-    .animate({ x: 200 })
-    .start();
-
-new Animation(box2)
-    .smooth(transaction.get_duration())
-    .animate({ scale: 1.5 })
-    .start();
-
-// Set completion
-transaction.set_completion_callback(() => {
-    console.log('Transaction complete');
-});
-
-// Finalize
-transaction.commit();
-
-// Other transaction methods
-transaction.disable_actions();  // Disable implicit animations
-transaction.enable_actions();   // Re-enable
-const disabled = transaction.are_actions_disabled();
-const id = transaction.get_transaction_id();
-const active = transaction.is_active();
-```
-
----
-
-## ⚡ GPU Acceleration
-
-Optimize for high-performance animations.
-
-```javascript
-import init, { Animation, GPUAccelerator } from 'animation-engine';
-
-await init();
-
-const accelerator = new GPUAccelerator();
-
-// Check support
-if (accelerator.is_supported()) {
-    console.log('GPU acceleration available');
-    
-    accelerator.enable();
-    accelerator.set_optimization_level(3);  // 0-3, higher = more aggressive
-    
-    const element = document.getElementById('fast-animation');
-    
-    // Apply GPU hints
-    accelerator.apply_gpu_hints(element);
-    
-    // Run animation
-    new Animation(element)
-        .smooth(1000)
-        .animate({ x: 500, rotate: 360 })
-        .start();
-    
-    // Clean up when done
-    setTimeout(() => {
-        accelerator.remove_gpu_hints(element);
-    }, 1000);
-} else {
-    console.log('GPU acceleration not supported, using CPU');
-}
-
-// Check state
-const enabled = accelerator.is_enabled();
-const level = accelerator.get_optimization_level();
-```
-
----
-
-## 🎪 Complete Examples
-
-### Interactive Card Component
-
-```javascript
-const card = document.querySelector('.card');
-
-// Hover enter
-card.addEventListener('mouseenter', () => {
-    new Animation(card)
-        .snappy(200)
-        .additive()
-        .animate({ scale: 1.05, y: -10 })
-        .start();
-});
-
-// Hover exit
-card.addEventListener('mouseleave', () => {
-    new Animation(card)
-        .smooth(300)
-        .additive()
-        .animate({ scale: 1, y: 0 })
-        .start();
-});
-
-// Mouse down (pressed)
-card.addEventListener('mousedown', () => {
-    new Animation(card)
-        .snappy(100)
-        .additive()
-        .animate({ scale: 0.95 })
-        .start();
-});
-
-// Mouse up (released)
-card.addEventListener('mouseup', () => {
-    new Animation(card)
-        .spring_bouncy()
-        .animate({ scale: 1.05 })
-        .start();
-});
-```
-
-### Modal Presentation
-
-```javascript
-function showModal(modal) {
-    modal.style.display = 'block';
-    
-    const backdrop = modal.querySelector('.backdrop');
-    const content = modal.querySelector('.content');
-    
-    // Fade in backdrop
-    new Animation(backdrop)
-        .linear(200)
-        .animate({ opacity: 1 })
-        .start();
-    
-    // Slide up content with spring
-    new Animation(content)
-        .spring_smooth()
+const sequencer = new Sequencer();
+const cards = document.querySelectorAll('.card');
+
+cards.forEach(card => {
+    const anim = new Animation(card)
+        .smooth(400)
         .animate({ y: 0, opacity: 1 })
         .start();
-}
-
-function hideModal(modal) {
-    const content = modal.querySelector('.content');
     
-    new Animation(content)
-        .smooth(250)
-        .animate({ y: 100, opacity: 0 })
-        .on_complete(() => {
-            modal.style.display = 'none';
-        })
-        .start();
-}
-```
-
-### SVG Logo Reveal
-
-```javascript
-const path = document.querySelector('svg path');
-const pathLength = path.getTotalLength();
-
-// Initial state
-path.style.strokeDasharray = pathLength;
-path.style.strokeDashoffset = pathLength;
-
-// Animate draw
-new Animation(path)
-    .ease_out(2000)
-    .set_delay(500)
-    .animate({ stroke_dashoffset: 0 })
-    .on_complete(() => {
-        // Fill after draw
-        new Animation(path)
-            .smooth(400)
-            .animate({ fill_opacity: 1 })
-            .start();
-    })
-    .start();
-```
-
-### Page Transition
-
-```javascript
-async function transitionToPage(nextPage) {
-    const currentPage = document.querySelector('.page.active');
-    
-    // Fade out current
-    await new Promise(resolve => {
-        new Animation(currentPage)
-            .smooth(300)
-            .animate({ opacity: 0 })
-            .on_complete(resolve)
-            .start();
-    });
-    
-    // Swap pages
-    currentPage.classList.remove('active');
-    nextPage.classList.add('active');
-    nextPage.style.opacity = '0';
-    
-    // Fade in new
-    new Animation(nextPage)
-        .smooth(300)
-        .animate({ opacity: 1 })
-        .start();
-}
-```
-
-### Draggable Card with Physics
-
-```javascript
-const card = document.querySelector('.card');
-const gestureRecognizer = new GestureRecognizer();
-let isDragging = false;
-
-card.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    gestureRecognizer.on_touch_start(e.clientX, e.clientY, e.timeStamp);
+    sequencer.overlap(anim, 0.7); // Stagger at 70%
 });
 
-document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-    
-    gestureRecognizer.on_touch_move(e.clientX, e.clientY, e.timeStamp);
-    
-    const dx = gestureRecognizer.get_displacement_x();
-    const dy = gestureRecognizer.get_displacement_y();
-    
-    card.style.transform = `translate(${dx}px, ${dy}px) rotate(${dx * 0.1}deg)`;
-});
-
-document.addEventListener('mouseup', (e) => {
-    if (!isDragging) return;
-    isDragging = false;
-    
-    gestureRecognizer.on_touch_end();
-    
-    const vx = gestureRecognizer.get_velocity_x();
-    const vy = gestureRecognizer.get_velocity_y();
-    
-    new Animation(card)
-        .spring_bouncy()
-        .with_velocity('x', vx)
-        .with_velocity('y', vy)
-        .animate({ x: 0, y: 0, rotate: 0 })
-        .start();
-});
+sequencer.play();
 ```
 
-### Loader Animation
-
+### Coordinated Transition
 ```javascript
-function createLoaderAnimation() {
-    const loader = document.querySelector('.loader');
-    
-    return new Animation(loader)
-        .linear(1000)
-        .repeat(-1)  // Infinite
-        .animate({ rotate: 360 })
-        .start();
-}
+const choreographer = new Choreographer(TransitionContext.Push);
 
-// Use it
-const loaderHandle = createLoaderAnimation();
+const newView = new Animation(document.getElementById('new-view'))
+    .smooth(350)
+    .animate({ x: 0, opacity: 1 });
 
-// Stop when ready
-setTimeout(() => {
-    loaderHandle.stop();
-}, 5000);
-```
+const oldView = new Animation(document.getElementById('old-view'))
+    .smooth(350)
+    .animate({ x: -100, opacity: 0.3 });
 
-### Staggered List Items
-
-```javascript
-const items = document.querySelectorAll('.list-item');
-
-items.forEach((item, index) => {
-    new Animation(item)
-        .smooth(600)
-        .set_delay(index * 100)  // Stagger by 100ms
-        .animate({ x: 0, opacity: 1 })
-        .start();
-});
+choreographer.addAnimation(newView.start());
+choreographer.addAnimation(oldView.start());
 ```
 
 ---
 
 ## ⚡ Performance Tips
 
-### ✅ DO Use
-
-```javascript
-// Transform properties (GPU accelerated)
-.animate({ x: 200, y: 100, scale: 1.5, rotate: 45 })
-
-// Opacity (very performant)
-.animate({ opacity: 0.5 })
-
-// Batch properties in one animation
-new Animation(element)
-    .smooth(400)
-    .animate({ x: 200, y: 100, scale: 1.5 })
-    .start();
-
-// Springs for natural motion
-.spring_bouncy()
-
-// will-change CSS
-```
-
-### ❌ DON'T Use
-
-```javascript
-// Layout properties (cause reflow)
-.animate({ width: 300, height: 200 })
-
-// Position properties
-.animate({ left: 200, top: 100 })  // Use x, y instead
-
-// Hundreds of simultaneous animations
-for (let i = 0; i < 1000; i++) {
-    new Animation(elements[i]).animate({...}).start();
-}
-
-// Shadow animations
-.animate({ box_shadow: "..." })  // Pre-render instead
-
-// Blocking operations during animation
-```
-
-### CSS Optimization
+1. **Use transforms** - `x, y, scale, rotate` are GPU-accelerated
+2. **Avoid layout properties** - `width, height` trigger reflow
+3. **Enable will-change** - `will-change: transform` in CSS
+4. **Batch updates** - Animate multiple properties together
+5. **Use spring physics** - Better than bezier curves for gestures
+6. **Throttle gesture updates** - Limit to 60fps
 
 ```css
 .animated-element {
-    /* Enable GPU layer */
-    will-change: transform;
-    
-    /* Prevent layout thrashing */
-    backface-visibility: hidden;
-    
-    /* Force GPU rendering */
-    transform: translateZ(0);
-    
-    /* Contain layout calculations */
-    contain: layout style paint;
-    
-    /* Modern browsers: optimize rendering */
-    transform-origin: center;
-    box-sizing: border-box;
+    will-change: transform, opacity;
+    transform: translateZ(0); /* GPU layer */
 }
 ```
 
-### Performance Monitoring
-
-```javascript
-const startTime = performance.now();
-
-const handle = new Animation(element)
-    .smooth(1000)
-    .animate({ x: 500, scale: 2 })
-    .on_complete(() => {
-        const endTime = performance.now();
-        console.log(`Animation took ${endTime - startTime}ms`);
-    })
-    .start();
-```
-
 ---
 
-## 🌐 Browser Support
+## 📚 API Reference
 
-| Browser | Version | Support |
-|---------|---------|---------|
-| Chrome | v90+ | ✅ Full |
-| Edge | v90+ | ✅ Full |
-| Firefox | v88+ | ✅ Full |
-| Safari | v14+ | ✅ Full |
-| iOS Safari | v14+ | ✅ Full |
-| Chrome Mobile | Latest | ✅ Full |
-| Firefox Android | Latest | ✅ Full |
-
----
-
-## 📖 API Reference
-
-### Animation Class
-
+### Animation
 ```javascript
 new Animation(element)
+    // Timing
     .smooth(duration)
     .snappy(duration)
     .bounce(duration)
     .ease_out(duration)
-    .ease_in(duration)
-    .ease_in_out(duration)
-    .linear(duration)
-    .cubic(x1, y1, x2, y2, duration)
-    .spring(stiffness, damping)
-    .spring_default()
-    .spring_bouncy()
     .spring_smooth()
+    
+    // Properties
     .animate(config)
     .add_keyframe(config)
-    .add_keyframes(configs)
-    .set_delay(delay)
-    .set_transform_origin(x, y, z)
-    .add_shadow_layer(offsetX, offsetY, blur, spread, color, inset)
+    
+    // Options
     .repeat(count)
     .auto_reverse()
+    .set_delay(ms)
     .additive()
-    .on_complete(callback)
-    .with_velocity(property, velocity)
-    .animate_if(condition, trueConfig, falseConfig)
-    .animate_match(value, cases)
-    .animate_ternary(condition, trueVal, falseVal, property)
-    .start()  // Returns AnimationHandle
+    .continue_animate()
+    
+    // Control
+    .start()
+    .pause()
+    .resume()
+    .stop()
+    .reverse()
+    
+    // Scrubbing
+    .set_fraction_complete(fraction)
+    .get_fraction_complete()
+    .get_state()
+    
+    // Callbacks
+    .on_complete(fn)
 ```
 
-### AnimationHandle Class
-
+### GestureController
 ```javascript
-const handle = animation.start();
-
-handle.pause()
-handle.resume()
-handle.stop()
-handle.reverse()
-handle.set_fraction_complete(fraction)
-handle.get_fraction_complete()
-handle.get_state()  // 0=Idle, 1=Running, 2=Paused, 3=Completed
+new GestureController()
+    .withSpring(spring)
+    .connectAnimation(animation)
+    
+    .onTapDown(x, y, timestamp)
+    .onTapMove(x, y, timestamp)
+    .onTapUp()
+    .onPress(pressed)
+    .onHover(hovering)
+    
+    // Properties
+    .fraction
+    .velocity, .velocityX, .velocityY
+    .displacement, .displacementX, .displacementY
+    .isTracking
+    .sensitivity
+    .completionThreshold
 ```
 
-### AnimationGroup Class
-
+### Spring
 ```javascript
-const group = new AnimationGroup(id);
+Spring.default()   // (300, 30)
+Spring.smooth()    // (400, 40)
+Spring.bouncy()    // (250, 15)
+Spring.snappy()    // (500, 35)
+Spring.gentle()    // (200, 25)
 
-group.add_animation(handle)
-group.play()
-group.pause()
-group.resume()
-group.stop()
-group.reverse()
-group.get_animation_count()
-group.is_playing_group()
-group.get_group_id()
+new Spring(stiffness, damping)
+    .update(target, deltaTime)
+    .reset(value)
+    .isAtRest(target, threshold)
+    
+    // Properties
+    .position
+    .velocity
+    .stiffness
+    .damping
 ```
 
-### GestureRecognizer Class
-
+### Choreographer
 ```javascript
-const gesture = new GestureRecognizer();
-
-gesture.on_touch_start(x, y, timestamp)
-gesture.on_touch_move(x, y, timestamp)
-gesture.on_touch_end()
-gesture.get_displacement_x()
-gesture.get_displacement_y()
-gesture.get_velocity_x()
-gesture.get_velocity_y()
-gesture.get_distance()
-gesture.is_gesture_active()
+new Choreographer(context)
+    .addAnimation(animation)
+    .beginInteractive()
+    .updateInteractive(fraction)
+    .finishInteractive(velocity)
+    .cancelInteractive()
+    
+    // Properties
+    .fraction
+    .isInteractive
+    .isCancelled
 ```
 
-### PathMorph Class
-
+### Sequencer
 ```javascript
-const morph = new PathMorph(startPath, endPath);
-
-morph.update_progress(progress)  // 0.0 to 1.0
-morph.get_current_path()
-morph.get_progress()
+new Sequencer()
+    .then(animation)
+    .with(animation)
+    .overlap(animation, at)
+    .addStep(animation, overlap)
+    
+    .play()
+    .pause()
+    .stop()
+    .seekTo(fraction)
+    
+    // Properties
+    .totalDuration
+    .stepCount
+    .fraction
+    .isRunning
 ```
 
-### AnimationTransaction Class
-
+### PathMorph
 ```javascript
-const transaction = new AnimationTransaction();
-
-transaction.set_duration(duration)
-transaction.get_duration()
-transaction.disable_actions()
-transaction.enable_actions()
-transaction.are_actions_disabled()
-transaction.set_completion_callback(callback)
-transaction.begin()
-transaction.commit()
-transaction.get_transaction_id()
-transaction.is_active()
+new PathMorph(startPath, endPath)
+    .updateProgress(fraction)
+    .getPath()
+    .getPathAt(fraction)
+    
+    // Properties
+    .progress
 ```
 
-### GPUAccelerator Class
-
+### ParticleEmitter
 ```javascript
-const accelerator = new GPUAccelerator();
+new ParticleEmitter()
+    .setVelocity(vx, vy)
+    .setVelocityVariance(variance)
+    .setGravity(gravity)
+    .setLifetime(duration, variance)
+    .setMaxParticles(max)
+    
+    .emit(element, x, y)
+    .emitBurst(element, x, y, count)
+    .update(deltaTime)
+    
+    .start()
+    .stop()
+    .clear()
+    
+    // Properties
+    .particleCount
+    .isActive
+    .maxParticles
 
-accelerator.is_supported()
-accelerator.enable()
-accelerator.disable()
-accelerator.is_enabled()
-accelerator.set_optimization_level(level)  // 0-3
-accelerator.get_optimization_level()
-accelerator.apply_gpu_hints(element)
-accelerator.remove_gpu_hints(element)
+// Presets
+ParticlePresets.confetti()
+ParticlePresets.smoke()
+ParticlePresets.sparkle()
+ParticlePresets.explosion()
 ```
 
 ---
 
-## 🤝 Contributing
+## 🎨 Design Philosophy
 
-Contributions welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+This engine follows **Apple's animation principles**:
+
+1. **Clarity** - Animations should clarify, not confuse
+2. **Physicality** - Natural motion feels intuitive
+3. **Responsiveness** - Immediate feedback to user input
+4. **Delight** - Subtle moments that bring joy
+5. **Consistency** - Predictable, learnable patterns
 
 ---
 
 ## 📄 License
 
-MIT © 2025 RODDY064
+MIT License - See LICENSE file for details
 
 ---
 
-## 📚 Additional Resources
-
-- [Apple UIView Animation Docs](https://developer.apple.com/documentation/uikit/uiview)
-- [Web Animations API](https://www.w3.org/TR/web-animations-1/)
-- [WebAssembly](https://webassembly.org/)
-- [Cubic Bezier Generator](https://cubic-bezier.com/)
-
----
-
-## 🎯 Roadmap
-
-- [ ] Touch event advanced gestures (pan, pinch, rotate)
-- [ ] Constraint-based animations
-- [ ] Custom animation types
-- [ ] Timeline/sequencer UI
-- [ ] Snapshot and playback
-- [ ] Physics-based collision detection
-- [ ] Advanced particle systems
-
----
-
-**Built with ❤️ for developers who love smooth animations**
-
-**2025 - RODDY064**
+**Built with Rust + WebAssembly for maximum performance** 🦀⚡
