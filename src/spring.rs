@@ -1,3 +1,4 @@
+#[derive(Clone)]
 pub struct Spring {
     pub stiffness: f64,
     pub damping: f64,
@@ -17,17 +18,16 @@ impl Spring {
         }
     }
 
-    // iOS UISpringTimingParameters presets
     pub fn default() -> Self {
-        Self::new(300.0, 30.0) // Balanced
+        Self::new(300.0, 30.0)
     }
 
     pub fn bouncy() -> Self {
-        Self::new(250.0, 15.0) // More bounce
+        Self::new(250.0, 15.0)
     }
 
     pub fn smooth() -> Self {
-        Self::new(400.0, 40.0) // Less bounce
+        Self::new(400.0, 40.0)
     }
 
     pub fn update(&mut self, target: f64, delta_time: f64) -> f64 {

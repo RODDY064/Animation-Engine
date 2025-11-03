@@ -11,27 +11,18 @@ async function initBig() {
     const box = document.querySelector(".box");
     let animationStart = 0;
 
-    function animate(config) {
+    function animate() {
       box.style.transform = "translate3d(0px, 0px, 0px)";
-      setTimeout(() => {
-        animationStart = performance.now();
-        let anim = new Animation(box);
+       let anim = new Animation(box)
+        .spring_smooth(400)
+        .with_velocity('y',25.0)
+        .set_delay(1000)
+        .animate({ x:300 })
+        .start();
 
-        anim = anim.cubic(config.x1,config.y1, config.x2,config.y2,config.duration);
-
-        anim = anim.to(null, 200, null, null, null, null, null, null);
-        anim.start();
-      }, 50);
     }
 
-    animate({
-      type: "cubic",
-      x1: 0.0,
-      y1: 0.0,
-      x2: 0.58,
-      y2: 1.0,
-      duration: 400,
-    });
+    animate();
   } catch {
     console.error("Failed to initialize WASM:", err);
   }
