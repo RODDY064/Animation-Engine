@@ -14,10 +14,9 @@ async function initBig() {
     function animate() {
       box.style.transform = "translate3d(0px, 0px, 0px)";
        let anim = new Animation(box)
-        .spring_smooth(400)
-        .with_velocity('y',25.0)
+        .spring_smooth(Infinity)
         .set_delay(1000)
-        .animate({ x:300 })
+        .animate({ rotate:360 })
         .start();
 
     }
