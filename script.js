@@ -6,16 +6,24 @@ async function initBig() {
     const {
       default: init,
       Animation,
-      AnimationChoreographer,
+      GestureController,
     } = await import("./pkg/animation_engine.js");
     await init();
 
     console.log("it loaded");
 
     const box = document.querySelector(".box");
-    const box2 = document.querySelector(".box2");
-    let animationStart = 0;
+    const button = document.querySelector(".box2");
+    const gesture = new GestureController();
 
+    button.addEventListener("mousedown", () => {
+      const scale = gesture.onPress(true); 
+      new Animation(button)
+      .spring_smooth(2)
+      .animate({ scale})
+      .start()
+  
+    });
 
     function animate() {
       box.style.transform = "translate3d(0px, 0px, 0px)";
